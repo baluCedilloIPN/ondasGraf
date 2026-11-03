@@ -1,0 +1,50 @@
+/* Estilos globales y personalizados */
+
+/* Transición suave para botones de pestañas */
+.tab-btn {
+  color: #94a3b8;
+}
+
+.tab-btn:hover {
+  color: #f8fafc;
+}
+
+.tab-btn.active {
+  background-color: #0e7490;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(14, 116, 144, 0.3);
+}
+
+/* Estado activo para selección de N en Fourier */
+.n-btn.active {
+  background-color: #d97706;
+  border-color: #f59e0b;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(217, 119, 6, 0.4);
+}
+
+/* Custom Sliders */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #06b6d4;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(6, 182, 212, 0.8);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* Scrollbar para la caja de la ecuación */
+#equation-display::-webkit-scrollbar {
+  height: 4px;
+}
+#equation-display::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 2px;
+}

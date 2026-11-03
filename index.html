@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laboratorio de Fourier y Generador de Ondas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="h-full flex flex-col font-sans antialiased overflow-x-hidden">
+
+  <!-- Header -->
+  <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 flex flex-wrap justify-between items-center gap-4">
+    <div>
+      <h1 class="text-xl font-bold text-cyan-400 flex items-center gap-2">
+        <span>⚡</span> Laboratorio de Series de Fourier y Sintetizador
+      </h1>
+      <p class="text-xs text-slate-400">Visualización interactiva en tiempo real y síntesis aditiva de audio</p>
+    </div>
+
+    <!-- Pestañas de Ondas -->
+    <nav class="flex bg-slate-950 p-1 rounded-xl border border-slate-800" id="tabs-container">
+      <button data-type="sine" class="tab-btn active px-4 py-1.5 rounded-lg text-sm font-medium transition">Senoidal</button>
+      <button data-type="square" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition">Cuadrada</button>
+      <button data-type="sawtooth" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition">Diente de Sierra</button>
+      <button data-type="triangle" class="tab-btn px-4 py-1.5 rounded-lg text-sm font-medium transition">Triangular</button>
+    </nav>
+  </header>
+
+  <!-- Layout Principal -->
+  <main class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 p-6 max-w-7xl mx-auto w-full">
+    
+    <!-- Panel Izquierdo: Controles -->
+    <section class="lg:col-span-4 flex flex-col gap-5">
+      
+      <!-- Card Controles Globales/Física -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+          Parámetros de la Onda
+          <span id="wave-badge" class="px-2 py-0.5 rounded text-xs bg-cyan-950 text-cyan-400 border border-cyan-800">Senoidal</span>
+        </h2>
+
+        <!-- Amplitud -->
+        <div class="mb-4">
+          <div class="flex justify-between text-sm mb-1">
+            <label for="amp-slider" class="text-slate-300">Amplitud (A)</label>
+            <span id="amp-val" class="font-mono text-cyan-400">1.0</span>
+          </div>
+          <input type="range" id="amp-slider" min="0.1" max="5.0" step="0.1" value="1.0" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+        </div>
+
+        <!-- Frecuencia -->
+        <div class="mb-4">
+          <div class="flex justify-between text-sm mb-1">
+            <label for="freq-slider" class="text-slate-300">Frecuencia (f)</label>
+            <span id="freq-val" class="font-mono text-cyan-400">440 Hz</span>
+          </div>
+          <input type="range" id="freq-slider" min="50" max="1000" step="1" value="440" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+        </div>
+
+        <!-- Botones RUN y Velocidad -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <button id="run-btn" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-950">
+            <span id="run-icon">⏸</span> <span id="run-text">PAUSA</span>
+          </button>
+          
+          <div class="flex flex-col">
+            <label for="speed-slider" class="text-xs text-slate-400 mb-1">Velocidad Animación</label>
+            <input type="range" id="speed-slider" min="0" max="3" step="0.1" value="1" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+          </div>
+        </div>
+
+        <!-- Selección de Constante N de Fourier (Oculto para Senoidal) -->
+        <div id="fourier-controls" class="hidden pt-4 border-t border-slate-800">
+          <label class="text-xs font-semibold uppercase tracking-wider text-amber-400 block mb-2">
+            Constante N (Armónicos de Fourier)
+          </label>
+          <div class="grid grid-cols-4 gap-2">
+            <button data-n="5" class="n-btn py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-amber-500 transition">N=5</button>
+            <button data-n="10" class="n-btn active py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-amber-500 transition">N=10</button>
+            <button data-n="20" class="n-btn py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-amber-500 transition">N=20</button>
+            <button data-n="25" class="n-btn py-1.5 text-xs font-mono font-bold rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-amber-500 transition">N=25</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Audio -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-sm">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+          Sintetizador de Audio
+          <span class="text-xs text-slate-500">Web Audio API</span>
+        </h2>
+        
+        <button id="audio-toggle" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-medium py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-cyan-950 mb-3">
+          <span>🔊</span> <span id="audio-text">Activar Sonido</span>
+        </button>
+
+        <p class="text-xs text-slate-400 leading-relaxed">
+          El audio utiliza **síntesis aditiva**, sumando exactamente los armónicos seleccionados en la constante N de Fourier para reproducir el timbre real.
+        </p>
+      </div>
+
+      <!-- Card Ecuación Dinámica -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl backdrop-blur-sm flex-1">
+        <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">Ecuación de Serie de Fourier</h2>
+        <div id="equation-display" class="font-mono text-xs text-cyan-300 bg-slate-950 p-3 rounded-xl border border-slate-800 overflow-x-auto">
+          f(t) = A · sin(2π f t)
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Panel Derecho: Canvas Gráfica -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 shadow-xl backdrop-blur-sm flex-1 flex flex-col relative min-h-[420px]">
+        
+        <!-- Header Canvas -->
+        <div class="flex justify-between items-center mb-3 px-2">
+          <div class="flex items-center gap-4 text-xs font-mono">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block"></span> Onda aproximada (Fourier)</span>
+            <span id="ideal-legend" class="hidden flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full border border-dashed border-slate-400 inline-block"></span> Onda Ideal</span>
+          </div>
+          <div class="text-xs font-mono text-slate-400" id="hover-coords">t: 0.00 ms | V: 0.00 V</div>
+        </div>
+
+        <!-- Canvas -->
+        <div class="flex-1 relative w-full h-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800/80">
+          <canvas id="wave-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
